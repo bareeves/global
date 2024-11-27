@@ -1,3 +1,47 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import Home from './pages/home/Home';
+import Chats from './pages/chats/Chats';
+import Settings from './pages/settings/Settings';
+// Ensure Tailwind CSS is imported in style.css or a similar main file.
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <div className="min-h-screen flex flex-col">
+        {/* Navigation */}
+        <nav className="bg-gray-800 text-white rounded-lg shadow-md z-20 relative">
+          <div className="flex justify-center space-x-6 py-4">
+            <ul className="flex space-x-6">
+              <li className="nav-item">
+                <Link className="text-white hover:text-gray-300" to="/">Home</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="text-white hover:text-gray-300" to="/chats">Chats</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="text-white hover:text-gray-300" to="/settings">Settings</Link>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-hidden">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/chats" element={<Chats />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </div>
+      </div>
+    </Router>
+  );
+};
+
+export default App;
+
+/*
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/tauri";
@@ -51,3 +95,4 @@ function App() {
 }
 
 export default App;
+*/
