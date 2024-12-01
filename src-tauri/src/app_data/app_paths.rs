@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use tauri::api::path::app_data_dir;
 
 
-static APP_NAME: &str = "Global";
+static APP_NAME: &str = "global";
 static APP_CACHE_DIR: &str = "Cache";
 
 pub fn get_app_data_dir() -> Result<PathBuf, String> {
