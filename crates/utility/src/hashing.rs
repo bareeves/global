@@ -64,16 +64,12 @@ impl Hash {
     /// Compute a double SHA3-256 hash of the input data and return it as a `Hash` instance.
     pub fn compute_hash(data: &[u8]) -> Hash {
 
-        let mut hasher1 = Sha3_256::new();
-        hasher1.update(data);
-        let sha3_256_hash = hasher1.finalize();
-
-        let mut hasher2 = Sha3_256::new();
-        hasher2.update(&sha3_256_hash);
-        let sha3_256_hash2 = hasher2.finalize();
+        let mut hasher = Sha3_256::new();
+        hasher.update(data);
+        let sha3_256_hash = hasher.finalize();
 
         let mut hash = [0u8; 32];
-        hash.copy_from_slice(&sha3_256_hash2);
+        hash.copy_from_slice(&sha3_256_hash);
         Hash(hash)
     }
     //
