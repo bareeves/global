@@ -88,7 +88,6 @@ impl StorageDirectory{
     pub fn get_storage_files_last_index(&self) -> Option<usize> { 
         self.storage_files_last_index
     }
-
     pub async fn init_storage_files_last_index(&mut self) {
         if let Ok(mut entries) = fs::read_dir(self.path.clone()).await {
             let mut max_index: Option<usize> = None;
@@ -104,9 +103,7 @@ impl StorageDirectory{
                     }
                 }
             }
-            
-            println!("max_index {:?}", max_index);
-            // If you want to store it in a struct field
+            //println!("max_index {:?}", max_index);
             self.storage_files_last_index= max_index;
         }
     }
