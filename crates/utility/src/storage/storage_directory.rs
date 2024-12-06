@@ -4,6 +4,7 @@ use tokio::io::{self, AsyncReadExt, AsyncWriteExt};
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 
+
 #[derive(Debug, Error)]
 pub enum StorageDirectoryError {
     #[error("I/O error occurred: {0}")]
@@ -25,7 +26,7 @@ pub enum StorageDirectoryError {
 pub struct StorageDirectory{
     path: PathBuf,
     category:String,
-    storage_files_count:Option<u32>,
+    storage_files_count:Option<usize>,
 }
 
 const MAX_STORAGE_FILE_INDEX:u32=50000000;
@@ -77,37 +78,37 @@ impl StorageDirectory{
         Ok(())
     }
     
-    /// Deletes a file in the directory.
-    pub async fn delete_file(&self, filename: &str) -> Result<(),StorageDirectoryError> {
-        let file_path = self.path.join(filename);
-        if !file_path.exists() {
-            return Err(StorageDirectoryError::FileNotFound(filename.to_string()));
-        }
-        if file_path.is_file() {
-            fs::remove_file(file_path).await?;
-        }
-        Ok(())
-    }
+    // TODO empty file - it does not delete the file it just empty it to save space, file should always be kept 
 
     /// Checks if a file exists in the directory.
     pub async fn file_exists(&self, filename: &str) -> bool {
         println!("does {:?} file_exists",filename);
         self.path.join(filename).exists()
     }
-    pub fn get_storage_files_count(&self) -> Option<u32> { 
+    pub fn get_storage_files_count(&self) -> Option<usize> { 
         self.storage_files_count
     }
+
     pub async fn init_storage_files_count(&mut self) {
-        let mut i:u32=0;     
-        while i<MAX_STORAGE_FILE_INDEX {
-            let formatted_string = format!("{}{}", self.category,i);
-            let string_slice: &str = formatted_string.as_str();
-            if !(self.file_exists(string_slice).await) {
-                break
+        if let Ok(mut entries) = fs::read_dir(self.path.clone()).await {
+            let mut max_index: Option<usize> = None;
+            
+            while let Ok(Some(entry)) = entries.next_entry().await {
+                let filename = entry.file_name();
+                let filename_str = filename.to_str().unwrap_or("");
+                println!("filename_str {:?}", filename_str);
+                
+                if filename_str.starts_with(&self.category) {
+                    if let Ok(index) = filename_str[self.category.len()..].parse::<usize>() {
+                        max_index = max_index.map_or(Some(index), |current| Some(current.max(index)));
+                    }
+                }
             }
-            i+=1;
+            
+            println!("max_index {:?}", max_index);
+            // If you want to store it in a struct field
+            self.storage_files_count= max_index;
         }
-        self.storage_files_count=Some(i);
     }
 
 }
