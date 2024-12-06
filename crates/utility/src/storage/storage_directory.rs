@@ -26,10 +26,10 @@ pub enum StorageDirectoryError {
 pub struct StorageDirectory{
     path: PathBuf,
     category:String,
-    storage_files_count:Option<usize>,
+    storage_files_last_index:Option<usize>,
 }
 
-const MAX_STORAGE_FILE_INDEX:u32=50000000;
+//const MAX_STORAGE_FILE_INDEX:u32=50000000;
 
 impl StorageDirectory{
     /// Creates a new `StorageDirectory` instance.
@@ -40,7 +40,7 @@ impl StorageDirectory{
         }
         println!("StorageDirectory - path:{:?} category {:?}", path,category);
 
-        Ok(Self { path, category,storage_files_count:None})
+        Ok(Self { path, category,storage_files_last_index:None})
     }
 
     /// Lists all files in the directory.
@@ -85,11 +85,11 @@ impl StorageDirectory{
         println!("does {:?} file_exists",filename);
         self.path.join(filename).exists()
     }
-    pub fn get_storage_files_count(&self) -> Option<usize> { 
-        self.storage_files_count
+    pub fn get_storage_files_last_index(&self) -> Option<usize> { 
+        self.storage_files_last_index
     }
 
-    pub async fn init_storage_files_count(&mut self) {
+    pub async fn init_storage_files_last_index(&mut self) {
         if let Ok(mut entries) = fs::read_dir(self.path.clone()).await {
             let mut max_index: Option<usize> = None;
             
@@ -107,7 +107,7 @@ impl StorageDirectory{
             
             println!("max_index {:?}", max_index);
             // If you want to store it in a struct field
-            self.storage_files_count= max_index;
+            self.storage_files_last_index= max_index;
         }
     }
 
