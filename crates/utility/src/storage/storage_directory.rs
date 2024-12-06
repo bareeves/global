@@ -85,7 +85,7 @@ impl StorageDirectory{
         println!("does {:?} file_exists",filename);
         self.path.join(filename).exists()
     }
-    pub fn get_storage_files_last_index(&self) -> Option<usize> { 
+    pub fn get_storage_files_last_index(&self) -> Option<usize> {
         self.storage_files_last_index
     }
     pub async fn init_storage_files_last_index(&mut self) {
