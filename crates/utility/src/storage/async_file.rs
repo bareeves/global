@@ -45,6 +45,7 @@ pub async fn read_portion_of_file(file_path: &str, start: u64, end: u64) -> Resu
 
     Ok(buffer)
 }
+//TODO Delete file
 
 pub async fn file_exists(file_path: &str) -> bool {
     fs::metadata(file_path).await.is_ok()

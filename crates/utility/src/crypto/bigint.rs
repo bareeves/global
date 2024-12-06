@@ -1,5 +1,5 @@
 use num_bigint::BigUint;
-use num_traits::{ToPrimitive, FromPrimitive};
+use num_traits::{ToPrimitive};//, FromPrimitive};
 use super::hash::Hash;
 
 /// Convert a `Hash` into a `BigUint` (interpreted as a little-endian integer).
