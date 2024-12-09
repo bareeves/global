@@ -1,6 +1,6 @@
 use std::fmt;
 use thiserror::Error;
-use crate::crypto::hash::Hash;
+
 
 /// Errors that can occur in `BufferReader`.
 #[derive(Debug, Error)]
@@ -74,14 +74,6 @@ impl BufferReader {
     pub fn get_bytes(&mut self, length: u32) -> Result<Vec<u8>, BufferReaderError> {
         self.read_exact(length as usize)
             .map(|buf| buf.to_vec())
-    }
-
-    /// Reads a hash (32 bytes) from the buffer.
-    pub fn get_hash(&mut self) -> Result<Hash, BufferReaderError> {
-        let bytes = self.get_bytes(32)?;
-        bytes.try_into().map(Hash::new).map_err(|_| {
-            BufferReaderError::InvalidData("Failed to convert bytes to hash".to_string())
-        })
     }
 
     /// Helper function for reading an exact number of bytes from the buffer.

@@ -1,5 +1,5 @@
 use std::vec::Vec;
-use crate::crypto::hash::Hash;
+
 
 /// A buffer writer that efficiently writes primitive types and custom data to a vector.
 #[derive(Clone)]
@@ -55,10 +55,7 @@ impl BufferWriter {
         self.content.extend_from_slice(&i.to_le_bytes());
     }
 
-    /// Writes a hash to the buffer by converting it to bytes.
-    pub fn put_hash(&mut self, h: &Hash) {
-        self.put_bytes(h.as_bytes());
-    }
+
 
     /// Writes raw bytes to the buffer.
     pub fn put_bytes(&mut self, buf: &[u8]) {
