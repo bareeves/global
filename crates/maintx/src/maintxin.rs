@@ -43,22 +43,22 @@ pub enum MaintxInError {
 
 impl MaintxInMainBlockReward {
     pub fn serialize(&self, writer: &mut BufferWriter) {
-        writer.put_u32(MAINTXIN_IDENTIFIER_MAINBLOCK_REWARD);
+        writer.put_var_u32(MAINTXIN_IDENTIFIER_MAINBLOCK_REWARD);
         writer.put_u32(self.mainblock_height);
     }
 }
 
 impl MaintxInEcdsa {
     pub fn serialize(&self, writer: &mut BufferWriter, signing: bool) {
-        writer.put_u32(MAINTXIN_IDENTIFIER_ECDSA);
+        writer.put_var_u32(MAINTXIN_IDENTIFIER_ECDSA);
         writer.put_hash(self.hash.clone());
-        writer.put_u32(self.index);
-        writer.put_var_u64(self.publickey.len() as u64);
-        writer.put_bytes(&self.publickey.clone());
+        writer.put_var_u32(self.index);
+        //writer.put_var_u64(self.publickey.len() as u64);
+        writer.put_var_bytes(&self.publickey.clone());
 
         if signing {
-            writer.put_var_u64(self.signature.len() as u64);
-            writer.put_bytes(&self.signature.clone());
+            //writer.put_var_u64(self.signature.len() as u64);
+            writer.put_var_bytes(&self.signature.clone());
         }
 
         writer.put_var_u64(0); // No extradata
@@ -133,16 +133,16 @@ pub fn new_maintxin_ecdsa(hash: Hash, index: u32, publickey: Vec<u8>) -> MaintxI
 }
 
 pub fn unserialize_maintxin(reader: &mut BufferReader) -> Result<MaintxIn, MaintxInError> {
-    let txin_id = reader.get_u32()?;
+    let txin_id = reader.get_var_u32()?;
 
     match txin_id {
         MAINTXIN_IDENTIFIER_ECDSA => {
             let hash = reader.get_hash()?;
-            let index = reader.get_u32()?;
-            let publickey_len = reader.get_var_u64()? as u32;
-            let publickey = reader.get_bytes(publickey_len)?;
-            let signature_len = reader.get_var_u64()? as u32;
-            let signature = reader.get_bytes(signature_len)?;
+            let index = reader.get_var_u32()?;
+            //let publickey_len = reader.get_var_u64()? as u32;
+            let publickey = reader.get_var_bytes()?;
+            //let signature_len = reader.get_var_u64()? as u32;
+            let signature = reader.get_var_bytes()?;
 
             Ok(MaintxIn::MaintxInEcdsaVariant(MaintxInEcdsa {
                 hash,

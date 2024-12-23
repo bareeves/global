@@ -12,7 +12,7 @@ use crate::maintxout::MaintxOutError;
 
 #[derive(Debug, Clone)]
 pub struct Maintx {
-    pub version: i32,
+    pub version: u32,
     pub vin: Vec<MaintxIn>,
     pub vout: Vec<MaintxOut>,
 }
@@ -56,7 +56,7 @@ impl Maintx {
     }
 
     pub fn serialize_with_buffer_writer(&self, buffer: &mut BufferWriter, signing: bool) {
-        buffer.put_u32(self.version as u32);
+        buffer.put_var_u32(self.version);
         buffer.put_var_u64(self.vin.len() as u64);
         for input in &self.vin {
             input.serialize(buffer, signing);
@@ -79,7 +79,7 @@ impl Maintx {
 
     pub fn unserialize_maintx(raw_bytes: Vec<u8>) -> Result<Self, MaintxError> {
         let mut reader = BufferReader::new(raw_bytes);
-        let version = reader.get_u32()? as i32;
+        let version = reader.get_var_u32()?;
 
         let vin_len = reader.get_var_u64()?;
         let mut vin = Vec::new();

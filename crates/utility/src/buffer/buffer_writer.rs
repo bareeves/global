@@ -34,6 +34,21 @@ impl BufferWriter {
             self.put_u64(i);
         }
     }
+    /// Writes a variable-length `u32` to the buffer.
+    pub fn put_var_u32(&mut self, i: u32) {
+        const U8_LIMIT: u32 = 253;
+        const U16_LIMIT: u32 = u16::MAX as u32;
+
+        if i < U8_LIMIT {
+            self.put_u8(i as u8);
+        } else if i <= U16_LIMIT {
+            self.put_u8(253);
+            self.put_u16(i as u16);
+        } else  {
+            self.put_u8(254);
+            self.put_u32(i as u32);
+        }
+    }
 
     /// Writes an unsigned 8-bit integer to the buffer.
     pub fn put_u8(&mut self, i: u8) {
@@ -55,7 +70,10 @@ impl BufferWriter {
         self.content.extend_from_slice(&i.to_le_bytes());
     }
 
-
+    pub fn put_var_bytes(&mut self, buf: &[u8]) {
+        self.put_var_u64(buf.len() as u64);
+        self.content.extend_from_slice(buf);
+    }
 
     /// Writes raw bytes to the buffer.
     pub fn put_bytes(&mut self, buf: &[u8]) {

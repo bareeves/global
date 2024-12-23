@@ -6,10 +6,12 @@ use thiserror::Error;
 /// Errors that can occur in `BufferReader`.
 #[derive(Debug, Error)]
 pub enum BufferReaderError {
+    #[error("Value found exceeds u32")]
+    ValueFoundExceedsU32,
     #[error("End of buffer reached")]
     EndOfBuffer,
-    #[error("Invalid data encountered: {0}")]
-    InvalidData(String),
+    //#[error("Invalid data encountered: {0}")]
+    //InvalidData(String),
 }
 
 /// A reader for sequentially extracting data from a byte buffer.
@@ -47,6 +49,19 @@ impl BufferReader {
             Ok(self.get_u64()?)
         }
     }
+    /// Reads a variable-length `u64` from the buffer.
+    pub fn get_var_u32(&mut self) -> Result<u32, BufferReaderError> {
+        let i = self.get_u8()?;
+        if i < 253 {
+            Ok(u32::from(i))
+        } else if i == 253 {
+            Ok(u32::from(self.get_u16()?))
+        } else if i == 254 {
+            Ok(self.get_u32()?)
+        } else {
+            return Err(BufferReaderError::ValueFoundExceedsU32);
+        }
+    }    
 
     /// Reads a `u8` from the buffer.
     pub fn get_u8(&mut self) -> Result<u8, BufferReaderError> {
@@ -70,7 +85,11 @@ impl BufferReader {
         self.read_exact(8)
             .map(|buf| u64::from_le_bytes(buf.try_into().unwrap()))
     }
-
+    /// Reads a sequence of bytes with a variable u64 before it
+    pub fn get_var_bytes(&mut self,) -> Result<Vec<u8>, BufferReaderError> {
+        let tmp_length=self.get_var_u32()?;
+        self.get_bytes(tmp_length)
+    }
     /// Reads a sequence of bytes of the given length from the buffer.
     pub fn get_bytes(&mut self, length: u32) -> Result<Vec<u8>, BufferReaderError> {
         self.read_exact(length as usize)

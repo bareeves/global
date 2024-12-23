@@ -40,7 +40,7 @@ pub enum MaintxOut {
 impl MaintxOutEcdsa {
     pub fn serialize(&self, writer: &mut BufferWriter) {
         writer.put_u64(self.value);
-        writer.put_u32(MAINTX_OUT_IDENTIFIER_ECDSA);
+        writer.put_var_u32(MAINTX_OUT_IDENTIFIER_ECDSA);
         writer.put_hash(self.address.clone());
         writer.put_var_u64(0); // No extra data
     }
@@ -86,7 +86,7 @@ pub fn new_ecdsa_maintxout(value: u64, address: Hash) -> MaintxOut {
 
 pub fn unserialize_maintxout(reader: &mut BufferReader) -> Result<MaintxOut, MaintxOutError> {
     let value = reader.get_u64()?;
-    let identifier = reader.get_u32()?;
+    let identifier = reader.get_var_u32()?;
 
     if identifier == MAINTX_OUT_IDENTIFIER_ECDSA {
         let address = reader.get_hash()?;
