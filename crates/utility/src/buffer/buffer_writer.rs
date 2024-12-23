@@ -1,5 +1,5 @@
-use std::vec::Vec;
-
+//use std::vec::Vec;
+use crate::hash::hash::Hash;
 
 /// A buffer writer that efficiently writes primitive types and custom data to a vector.
 #[derive(Clone)]
@@ -61,7 +61,10 @@ impl BufferWriter {
     pub fn put_bytes(&mut self, buf: &[u8]) {
         self.content.extend_from_slice(buf);
     }
-
+    pub fn put_hash(&mut self, h: Hash) {
+        let tmpcontent=h.as_bytes();
+        self.put_bytes(tmpcontent);
+    }
     /// Returns a copy of the current buffer content.
     pub fn get_bytes(&self) -> Vec<u8> {
         self.content.clone()

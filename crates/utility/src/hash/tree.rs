@@ -43,7 +43,7 @@ fn compute_branch(left: &Hash, right: &Hash) -> Hash {
     Hash::compute_hash(&hash_concat)
 }
 /*
-    /// Double SHA-256 hashing.
+    /// Double SHA-256 hash::hash.
     fn double_hash(data: &[u8]) -> Hash {
         let intermediate = sha2::Sha256::digest(data);
         let final_hash = sha2::Sha256::digest(&intermediate);

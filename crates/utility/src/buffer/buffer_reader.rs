@@ -1,3 +1,4 @@
+use crate::hash::hash::Hash;
 use std::fmt;
 use thiserror::Error;
 
@@ -84,6 +85,11 @@ impl BufferReader {
         let start = self.counter;
         self.counter += length;
         Ok(&self.content[start..self.counter])
+    }
+    pub fn get_hash(&mut self) -> Result<Hash, BufferReaderError> {
+        let slice = self.read_exact((32 as u32).try_into().unwrap())?;
+        assert_eq!(slice.len(), 32, "Slice length must be 32");
+        Ok(Hash::new(slice.try_into().unwrap()))
     }
 }
 
