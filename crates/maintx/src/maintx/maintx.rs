@@ -4,11 +4,11 @@ use utility::buffer::buffer_writer::BufferWriter;
 use utility::buffer::buffer_reader::BufferReader;
 use utility::buffer::buffer_reader::BufferReaderError;
 use utility::ecdsa::ecdsa::verify_signature;
-use crate::maintxout::{MaintxOut, new_ecdsa_maintxout, unserialize_maintxout};
-use crate::maintxin::{MaintxIn, new_mainblockrewardtxin, unserialize_maintxin};
+use crate::maintx_out::maintx_out::{MaintxOut, new_ecdsa_maintx_out, unserialize_maintx_out};
+use crate::maintx_in::maintx_in::{MaintxIn, new_mainblockrewardtxin, unserialize_maintx_in};
 
-use crate::maintxin::MaintxInError;
-use crate::maintxout::MaintxOutError;
+use crate::maintx_in::maintx_in::MaintxInError;
+use crate::maintx_out::maintx_out::MaintxOutError;
 
 #[derive(Debug, Clone)]
 pub struct Maintx {
@@ -84,13 +84,13 @@ impl Maintx {
         let vin_len = reader.get_var_u64()?;
         let mut vin = Vec::new();
         for _ in 0..vin_len {
-            vin.push(unserialize_maintxin(&mut reader)?);
+            vin.push(unserialize_maintx_in(&mut reader)?);
         }
 
         let vout_len = reader.get_var_u64()?;
         let mut vout = Vec::new();
         for _ in 0..vout_len {
-            vout.push(unserialize_maintxout(&mut reader)?);
+            vout.push(unserialize_maintx_out(&mut reader)?);
         }
 
         Ok(Maintx { version, vin, vout })
@@ -101,6 +101,6 @@ pub fn new_reward_transaction(mainblock_height: u32, value: u64, fee: u64, pubke
     Maintx {
         version: 1,
         vin: vec![new_mainblockrewardtxin(mainblock_height)],
-        vout: vec![new_ecdsa_maintxout(value + fee, pubkey_hash)],
+        vout: vec![new_ecdsa_maintx_out(value + fee, pubkey_hash)],
     }
 }

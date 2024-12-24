@@ -5,8 +5,8 @@ use utility::buffer::buffer_reader::BufferReader;
 use utility::buffer::buffer_reader::BufferReaderError;
 use utility::ecdsa::ecdsa::verify_signature;
 
-pub const MAINTXIN_IDENTIFIER_MAINBLOCK_REWARD: u32 = 0;
-pub const MAINTXIN_IDENTIFIER_ECDSA: u32 = 1;
+pub const MAINTX_IN_IDENTIFIER_MAINBLOCK_REWARD: u32 = 0;
+pub const MAINTX_IN_IDENTIFIER_ECDSA: u32 = 1;
 
 #[derive(Debug, Clone)]
 pub struct MaintxInMainBlockReward {
@@ -43,21 +43,19 @@ pub enum MaintxInError {
 
 impl MaintxInMainBlockReward {
     pub fn serialize(&self, writer: &mut BufferWriter) {
-        writer.put_var_u32(MAINTXIN_IDENTIFIER_MAINBLOCK_REWARD);
+        writer.put_var_u32(MAINTX_IN_IDENTIFIER_MAINBLOCK_REWARD);
         writer.put_u32(self.mainblock_height);
     }
 }
 
 impl MaintxInEcdsa {
     pub fn serialize(&self, writer: &mut BufferWriter, signing: bool) {
-        writer.put_var_u32(MAINTXIN_IDENTIFIER_ECDSA);
+        writer.put_var_u32(MAINTX_IN_IDENTIFIER_ECDSA);
         writer.put_hash(self.hash.clone());
         writer.put_var_u32(self.index);
-        //writer.put_var_u64(self.publickey.len() as u64);
         writer.put_var_bytes(&self.publickey.clone());
 
         if signing {
-            //writer.put_var_u64(self.signature.len() as u64);
             writer.put_var_bytes(&self.signature.clone());
         }
 
@@ -123,7 +121,7 @@ pub fn new_mainblockrewardtxin(height: u32) -> MaintxIn {
     })
 }
 
-pub fn new_maintxin_ecdsa(hash: Hash, index: u32, publickey: Vec<u8>) -> MaintxIn {
+pub fn new_maintx_in_ecdsa(hash: Hash, index: u32, publickey: Vec<u8>) -> MaintxIn {
     MaintxIn::MaintxInEcdsaVariant(MaintxInEcdsa {
         hash,
         index,
@@ -132,16 +130,14 @@ pub fn new_maintxin_ecdsa(hash: Hash, index: u32, publickey: Vec<u8>) -> MaintxI
     })
 }
 
-pub fn unserialize_maintxin(reader: &mut BufferReader) -> Result<MaintxIn, MaintxInError> {
+pub fn unserialize_maintx_in(reader: &mut BufferReader) -> Result<MaintxIn, MaintxInError> {
     let txin_id = reader.get_var_u32()?;
 
     match txin_id {
         MAINTXIN_IDENTIFIER_ECDSA => {
             let hash = reader.get_hash()?;
             let index = reader.get_var_u32()?;
-            //let publickey_len = reader.get_var_u64()? as u32;
             let publickey = reader.get_var_bytes()?;
-            //let signature_len = reader.get_var_u64()? as u32;
             let signature = reader.get_var_bytes()?;
 
             Ok(MaintxIn::MaintxInEcdsaVariant(MaintxInEcdsa {
@@ -151,7 +147,7 @@ pub fn unserialize_maintxin(reader: &mut BufferReader) -> Result<MaintxIn, Maint
                 signature,
             }))
         }
-        MAINTXIN_IDENTIFIER_MAINBLOCK_REWARD => {
+        MAINTX_IN_IDENTIFIER_MAINBLOCK_REWARD => {
             let mainblock_height = reader.get_u32()?;
             Ok(MaintxIn::MaintxInMainBlockRewardVariant(MaintxInMainBlockReward {
                 mainblock_height,

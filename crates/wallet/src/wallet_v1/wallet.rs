@@ -117,7 +117,7 @@ impl WalletInner {
 
         for (i, vout) in tmpmaintx.vout.iter().enumerate() {
             for (j, address) in addresses.iter().enumerate() {
-                if vout.is_ecdsamaintxout_address(address) {
+                if vout.is_ecdsamaintx_out_address(address) {
                     let hash = tmpmaintx.compute_hash();
                     self.add_unspent_resource(hash, i as u32, vout.get_value()?, j);
                 }
@@ -125,7 +125,7 @@ impl WalletInner {
         }
 
         for vin in &tmpmaintx.vin {
-            if vin.is_ecdsamaintxin() {
+            if vin.is_ecdsamaintx_in() {
                 self.update_resource_to_spent(vin.get_hash()?, vin.get_index()?);
             }
         }

@@ -80,18 +80,18 @@ impl MaintxOut {
     }
 }
 
-pub fn new_ecdsa_maintxout(value: u64, address: Hash) -> MaintxOut {
+pub fn new_ecdsa_maintx_out(value: u64, address: Hash) -> MaintxOut {
     MaintxOut::MaintxOutEcdsaVariant(MaintxOutEcdsa { value, address })
 }
 
-pub fn unserialize_maintxout(reader: &mut BufferReader) -> Result<MaintxOut, MaintxOutError> {
+pub fn unserialize_maintx_out(reader: &mut BufferReader) -> Result<MaintxOut, MaintxOutError> {
     let value = reader.get_u64()?;
     let identifier = reader.get_var_u32()?;
 
     if identifier == MAINTX_OUT_IDENTIFIER_ECDSA {
         let address = reader.get_hash()?;
         let _extra_data_len = reader.get_var_u64()?;
-        Ok(new_ecdsa_maintxout(value, address))
+        Ok(new_ecdsa_maintx_out(value, address))
     } else {
         Err(MaintxOutError::InvalidVariant)
     }
