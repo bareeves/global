@@ -90,7 +90,7 @@ impl MaintxIn {
         matches!(self, MaintxIn::MaintxInEcdsaVariant(_))
     }
 
-    pub fn check_ecdsa_signature(&self, hash: Hash) -> bool {
+    pub fn verify_ecdsa_signature(&self, hash: Hash) -> bool {
         if let MaintxIn::MaintxInEcdsaVariant(txin) = self {
             txin.check_signature(hash)
         } else {

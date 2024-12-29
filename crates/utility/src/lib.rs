@@ -1,4 +1,4 @@
-pub mod common;
+pub mod system;
 pub mod hash;
 pub mod ecdsa;
 pub mod buffer;

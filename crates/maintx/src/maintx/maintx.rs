@@ -41,7 +41,7 @@ impl Maintx {
     pub fn verify_signatures(&self) -> bool {
         let hash = self.compute_hash();
         for input in &self.vin {
-            if input.is_ecdsa() && !input.check_ecdsa_signature(hash.clone()) {
+            if input.is_ecdsa() && !input.verify_ecdsa_signature(hash.clone()) {
                 return false;
             }
         }
@@ -67,36 +67,36 @@ impl Maintx {
         }
     }
 
-    pub fn serialize_transaction(&self) -> Vec<u8> {
+    pub fn serialize(&self) -> Vec<u8> {
         let mut buffer = BufferWriter::new();
         self.serialize_with_buffer_writer(&mut buffer, true);
         buffer.get_bytes()
     }
 
     pub fn get_serialization_size(&self) -> usize {
-        self.serialize_transaction().len()
+        self.serialize().len()
     }
 
-    pub fn unserialize_maintx(raw_bytes: Vec<u8>) -> Result<Self, MaintxError> {
-        let mut reader = BufferReader::new(raw_bytes);
-        let version = reader.get_var_u32()?;
 
-        let vin_len = reader.get_var_u64()?;
-        let mut vin = Vec::new();
-        for _ in 0..vin_len {
-            vin.push(unserialize_maintx_in(&mut reader)?);
-        }
-
-        let vout_len = reader.get_var_u64()?;
-        let mut vout = Vec::new();
-        for _ in 0..vout_len {
-            vout.push(unserialize_maintx_out(&mut reader)?);
-        }
-
-        Ok(Maintx { version, vin, vout })
-    }
 }
+pub fn unserialize_maintx(raw_bytes: Vec<u8>) -> Result<Maintx, MaintxError> {
+    let mut reader = BufferReader::new(raw_bytes);
+    let version = reader.get_var_u32()?;
 
+    let vin_len = reader.get_var_u64()?;
+    let mut vin = Vec::new();
+    for _ in 0..vin_len {
+        vin.push(unserialize_maintx_in(&mut reader)?);
+    }
+
+    let vout_len = reader.get_var_u64()?;
+    let mut vout = Vec::new();
+    for _ in 0..vout_len {
+        vout.push(unserialize_maintx_out(&mut reader)?);
+    }
+
+    Ok(Maintx { version, vin, vout })
+}
 pub fn new_reward_transaction(mainblock_height: u32, value: u64, fee: u64, pubkey_hash: Hash) -> Maintx {
     Maintx {
         version: 1,
