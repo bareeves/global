@@ -81,8 +81,8 @@ impl MaintxInEcdsa {
 impl MaintxIn {
     pub fn serialize(&self, writer: &mut BufferWriter, signing: bool) {
         match self {
-            MaintxIn::MaintxInMainBlockRewardVariant(txin) => txin.serialize(writer),
-            MaintxIn::MaintxInEcdsaVariant(txin) => txin.serialize(writer, signing),
+            MaintxIn::MaintxInMainBlockRewardVariant(txinmainblockreward) => txinmainblockreward.serialize(writer),
+            MaintxIn::MaintxInEcdsaVariant(txinecdsa) => txinecdsa.serialize(writer, signing),
         }
     }
 
@@ -132,13 +132,19 @@ pub fn new_maintx_in_ecdsa(hash: Hash, index: u32, publickey: Vec<u8>) -> Maintx
 
 pub fn unserialize_maintx_in(reader: &mut BufferReader) -> Result<MaintxIn, MaintxInError> {
     let txin_id = reader.get_var_u32()?;
+    println!("txin_id {}",txin_id);
 
-    match txin_id {
-        MAINTXIN_IDENTIFIER_ECDSA => {
+    if  txin_id == MAINTX_IN_IDENTIFIER_ECDSA {
+            println!("MAINTXIN_IDENTIFIER_ECDSA");
             let hash = reader.get_hash()?;
+            println!("hash {:?}",hash);
             let index = reader.get_var_u32()?;
+            println!("index {}",index);
             let publickey = reader.get_var_bytes()?;
+            println!("publickey {:?}",publickey);
             let signature = reader.get_var_bytes()?;
+            println!("signature {:?}",signature);
+            let _extra_bytes=reader.get_var_u64()?;
 
             Ok(MaintxIn::MaintxInEcdsaVariant(MaintxInEcdsa {
                 hash,
@@ -146,13 +152,14 @@ pub fn unserialize_maintx_in(reader: &mut BufferReader) -> Result<MaintxIn, Main
                 publickey,
                 signature,
             }))
-        }
-        MAINTX_IN_IDENTIFIER_MAINBLOCK_REWARD => {
+        } else if txin_id == MAINTX_IN_IDENTIFIER_MAINBLOCK_REWARD {
             let mainblock_height = reader.get_u32()?;
             Ok(MaintxIn::MaintxInMainBlockRewardVariant(MaintxInMainBlockReward {
                 mainblock_height,
             }))
+        } else {
+            Err(MaintxInError::UnknownIdentifier(txin_id))
         }
-        _ => Err(MaintxInError::UnknownIdentifier(txin_id)),
-    }
+
+
 }

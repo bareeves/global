@@ -72,6 +72,7 @@ impl StorageDirectory{
 
     /// save data to a file in the directory (creates the file if it doesn't exist).
     pub async fn save_bytes_to_file(&self, filename: &str, data: &[u8]) -> Result<(),StorageDirectoryError> {
+        println!("StorageDirectory save_bytes_to_file {:?}",filename);
         let file_path = self.path.join(filename);
         let mut file = File::create(file_path).await.map_err(|e| StorageDirectoryError::FileCreationError(e.to_string()))?;
         file.write_all(data).await.map_err(StorageDirectoryError::Io)?;
@@ -86,6 +87,10 @@ impl StorageDirectory{
         self.path.join(filename).exists()
     }
     pub fn get_storage_files_last_index(&self) -> Option<usize> {
+        match self.storage_files_last_index {
+            Some(count) => println!("self.storage_files_last_index: {}", count),
+            None => println!("self.storage_files_last_index is None"),
+        }
         self.storage_files_last_index
     }
     pub async fn init_storage_files_last_index(&mut self) {
@@ -106,6 +111,33 @@ impl StorageDirectory{
             //println!("max_index {:?}", max_index);
             self.storage_files_last_index= max_index;
         }
+    }
+    pub async fn init(&mut self) -> Result<(),StorageDirectoryError> {
+        //TODO better error handling
+        self.init_storage_files_last_index().await;
+        Ok(())
+    }
+    pub async fn add_chunk(&mut self,chunk_bytes: &[u8])->  Result<(),StorageDirectoryError> {
+        let mut i=0;
+        let index_result=self.get_storage_files_last_index();
+        match index_result {
+            Some(index) => i=index,//println!("get_storage_files_last_index: {}", index),
+            None => i=0,//println!("storage files last index not initialized"), 
+        }
+        let file_path=format!("{}{}",self.category, i);
+        self.save_bytes_to_file(&file_path, chunk_bytes).await?;
+        
+        if let Some(ref mut count) = self.storage_files_last_index {
+            *count += 1;
+        } else if self.storage_files_last_index .is_none() {
+            self.storage_files_last_index  = Some(0);
+        }
+
+        Ok(())
+    }
+    pub async fn get_chunk(&mut self,chunk_height:usize)->  Result<Vec<u8>,StorageDirectoryError> {
+        let file_path=format!("{}{}",self.category, chunk_height);
+        self.load_bytes_from_file(&file_path).await
     }
 
 }
