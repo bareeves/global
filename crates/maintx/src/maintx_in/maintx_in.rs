@@ -23,7 +23,7 @@ pub struct MaintxInEcdsa {
 
 #[derive(Debug, Clone)]
 pub enum MaintxIn {
-    MaintxInMainBlockRewardVariant(MaintxInMainBlockReward),
+    MaintxInMainblockRewardVariant(MaintxInMainBlockReward),
     MaintxInEcdsaVariant(MaintxInEcdsa),
 }
 
@@ -39,6 +39,7 @@ pub enum MaintxInError {
     //Io(#[from] std::io::Error),
     #[error("Buffer reader error: {0}")]
     BufferReaderError(#[from] BufferReaderError),
+
 }
 
 impl MaintxInMainBlockReward {
@@ -81,7 +82,7 @@ impl MaintxInEcdsa {
 impl MaintxIn {
     pub fn serialize(&self, writer: &mut BufferWriter, signing: bool) {
         match self {
-            MaintxIn::MaintxInMainBlockRewardVariant(txinmainblockreward) => txinmainblockreward.serialize(writer),
+            MaintxIn::MaintxInMainblockRewardVariant(txinmainblockreward) => txinmainblockreward.serialize(writer),
             MaintxIn::MaintxInEcdsaVariant(txinecdsa) => txinecdsa.serialize(writer, signing),
         }
     }
@@ -97,7 +98,7 @@ impl MaintxIn {
             false
         }
     }
-
+    /*
     pub fn as_ecdsa(&self) -> Result<&MaintxInEcdsa, MaintxInError> {
         if let MaintxIn::MaintxInEcdsaVariant(txin) = self {
             Ok(txin)
@@ -113,10 +114,49 @@ impl MaintxIn {
             Err(MaintxInError::NotEcdsaVariant)
         }
     }
+    */
+    //////////////////////////////////////////////
+    pub fn get_ecdsatxin(&self) -> Result<MaintxInEcdsa, MaintxInError>  {
+        match self {
+            MaintxIn::MaintxInMainblockRewardVariant(_)=> Err(MaintxInError::NotEcdsaVariant),//Err(Box::new(std::io::Error::new(ErrorKind::Other, "get_ecdsatxin error - txin is MainBlockRewardTxInVariant"))),
+            MaintxIn::MaintxInEcdsaVariant(txin) => Ok(txin.clone()),
+        }
+    }
+    pub fn set_signature(&mut self,tmp_signature:Vec<u8>) -> Result<(), MaintxInError>  {
+        match self {
+            MaintxIn::MaintxInMainblockRewardVariant(_)=> Err(MaintxInError::NotEcdsaVariant),//Err(Box::new(std::io::Error::new(ErrorKind::Other, "put_signature error - txin is MainBlockRewardTxInVariant"))),
+            MaintxIn::MaintxInEcdsaVariant(ref mut txin) => Ok(txin.set_signature(tmp_signature)),
+        }
+    }
+    pub fn get_hash(&self) -> Result<Hash, MaintxInError>  {
+        match self {
+            MaintxIn::MaintxInMainblockRewardVariant(_)=> Err(MaintxInError::NotEcdsaVariant),//Err(Box::new(std::io::Error::new(ErrorKind::Other, "get_hash error - txin is MainBlockRewardTxInVariant"))),
+            MaintxIn::MaintxInEcdsaVariant(txin) => Ok(txin.hash.clone()),
+        }
+    }
+    pub fn get_index(&self) -> Result<u32, MaintxInError>  {
+        match self {
+            MaintxIn::MaintxInMainblockRewardVariant(_)=> Err(MaintxInError::NotEcdsaVariant),//Err(Box::new(std::io::Error::new(ErrorKind::Other, "get_index error - txin is MainBlockRewardTxInVariant"))),
+            MaintxIn::MaintxInEcdsaVariant(txin) => Ok(txin.index),
+        }
+    }
+    pub fn get_publickey(&self) -> Result<Vec<u8>, MaintxInError>  {
+        match self {
+            MaintxIn::MaintxInMainblockRewardVariant(_)=> Err(MaintxInError::NotEcdsaVariant),//Err(Box::new(std::io::Error::new(ErrorKind::Other, "get_publickey error - txin is MainBlockRewardTxInVariant"))),
+            MaintxIn::MaintxInEcdsaVariant(txin) => Ok(txin.publickey.clone()),
+        }
+    }
+    pub fn get_signature(&self) -> Result<Vec<u8>, MaintxInError>  {
+        match self {
+            MaintxIn::MaintxInMainblockRewardVariant(_)=> Err(MaintxInError::NotEcdsaVariant),//Err(Box::new(std::io::Error::new(ErrorKind::Other, "get_signature error - txin is MainBlockRewardTxInVariant"))),
+            MaintxIn::MaintxInEcdsaVariant(txin) => Ok(txin.signature.clone()),
+        }
+    }
+    //////////////////////////////////////////////
 }
 
 pub fn new_mainblockrewardtxin(height: u32) -> MaintxIn {
-    MaintxIn::MaintxInMainBlockRewardVariant(MaintxInMainBlockReward {
+    MaintxIn::MaintxInMainblockRewardVariant(MaintxInMainBlockReward {
         mainblock_height: height,
     })
 }
@@ -132,7 +172,7 @@ pub fn new_maintx_in_ecdsa(hash: Hash, index: u32, publickey: Vec<u8>) -> Maintx
 
 pub fn unserialize_maintx_in(reader: &mut BufferReader) -> Result<MaintxIn, MaintxInError> {
     let txin_id = reader.get_var_u32()?;
-    println!("txin_id {}",txin_id);
+    //println!("txin_id {}",txin_id);
 
     if  txin_id == MAINTX_IN_IDENTIFIER_ECDSA {
             println!("MAINTXIN_IDENTIFIER_ECDSA");
@@ -154,7 +194,7 @@ pub fn unserialize_maintx_in(reader: &mut BufferReader) -> Result<MaintxIn, Main
             }))
         } else if txin_id == MAINTX_IN_IDENTIFIER_MAINBLOCK_REWARD {
             let mainblock_height = reader.get_u32()?;
-            Ok(MaintxIn::MaintxInMainBlockRewardVariant(MaintxInMainBlockReward {
+            Ok(MaintxIn::MaintxInMainblockRewardVariant(MaintxInMainBlockReward {
                 mainblock_height,
             }))
         } else {

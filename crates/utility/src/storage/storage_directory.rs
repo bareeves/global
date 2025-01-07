@@ -87,10 +87,10 @@ impl StorageDirectory{
         self.path.join(filename).exists()
     }
     pub fn get_storage_files_last_index(&self) -> Option<usize> {
-        match self.storage_files_last_index {
-            Some(count) => println!("self.storage_files_last_index: {}", count),
-            None => println!("self.storage_files_last_index is None"),
-        }
+        //match self.storage_files_last_index {
+        //    Some(count) => println!("self.storage_files_last_index: {}", count),
+        //    None => println!("self.storage_files_last_index is None"),
+        //}
         self.storage_files_last_index
     }
     pub async fn init_storage_files_last_index(&mut self) {

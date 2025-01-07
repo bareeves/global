@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use thiserror::Error; 
 use utility::storage::storage_directory::StorageDirectory;
 use utility::storage::storage_directory::StorageDirectoryError;
-
+use utility::hash::bigint;
 use crate::mainheader::mainheader::Mainheader;
 use crate::mainblock::mainblock::Mainblock;
 use crate::mainblock::mainblock::unserialize_mainblock;
@@ -225,6 +225,40 @@ impl MaincoreInner{
     }
     pub fn get_inmem_mainheader(&self,header_height: usize)-> Result<Mainheader, MaincoreInnerError> {
         Ok(self.header_vector[header_height].clone()) 
+    }
+    pub fn get_newbits(&mut self)-> u32 {
+        //let newbits:u32;
+        
+        let tmp_height=self.header_vector.len();
+        let prev_mainheader=self.header_vector[tmp_height-1].clone();
+        if tmp_height % 4032 ==0 {
+            let mut summedtimestamp:i64=0;
+            for i in (tmp_height-4031)..(tmp_height) {
+                let deltatimestamp=self.header_vector[i].get_timestamp()-self.header_vector[i-1].get_timestamp();
+                if deltatimestamp==0 {
+                    println!("check deltatimestamp {} for i {}",deltatimestamp,i);
+                    println!("self.header_vector[i].get_timestamp() {} self.header_vector[i-1].get_timestamp() {}",self.header_vector[i].get_timestamp(),self.header_vector[i-1].get_timestamp());
+                    //process::exit(1);
+                }
+                summedtimestamp+=deltatimestamp;
+            }
+            let bitsbigint=bigint::bigint_from_compact(prev_mainheader.get_bits());
+            let newbitsbigint=bitsbigint.clone()*bigint::bigint_from_u64(summedtimestamp as u64)/bigint::bigint_from_u64((4031*300) as u64);
+            /*
+            println!("summed over interval from {} to {}",tmp_height-4031,tmp_height-1);
+            println!("summedtimestamp {} idealtime {}",summedtimestamp,4031*300);
+            println!("check deltatimestamp {}",self.header_vector[1].get_timestamp()-self.header_vector[0].get_timestamp());
+            println!("oldbits {} newbits {}",bitsbigint,newbitsbigint);
+            println!("oldbits compact {} newbits compact {}",bigint::compact_from_bigint(&bitsbigint),bigint::compact_from_bigint(&newbitsbigint));
+            println!("newbits {}",bigint::compact_from_bigint(&newbitsbigint));
+            println!("oldbits {}",bigint::compact_from_bigint(&bitsbigint));
+            process::exit(1);
+            */
+            return bigint::compact_from_bigint(&newbitsbigint);
+
+        } else {
+            return prev_mainheader.get_bits();
+        }
     }
 
 }
