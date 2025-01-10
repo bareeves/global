@@ -43,6 +43,7 @@ pub enum MaincoreInnerError {
 //#[derive(Debug)] // Implementing Debug trait for MainCoreInner
 pub struct MaincoreInner {
     mci_path: PathBuf,
+    genesis_mainblock:Option<Mainblock>,
     main_sd: StorageDirectory,
     header_vector:Vec<Mainheader>,
     confimation_depth:usize,
@@ -72,6 +73,7 @@ impl MaincoreInner{
         Ok(Self { 
             mci_path,
             main_sd,
+            genesis_mainblock:None,
             header_vector: Vec::new(),//
             confimation_depth: 6,
             //syncpool:Syncpool::new(),
@@ -90,16 +92,16 @@ impl MaincoreInner{
             Ok(_)=> {
                 println!("StorageDirectory init success");
                 //
-                let index_result=self.main_sd.get_storage_files_last_index();
-                match index_result {
-                    Some(index) =>{
+                let index=self.main_sd.get_storage_files_last_index();
+                //match index_result {
+                //    Some(index) =>{
                         println!("get_storage_files_last_index: {}", index);
-                    },
-                    None => {
-                        println!("storage files last index not initialized");
-                        //TODO add genesis block here
-                    }, 
-                }        
+                //    },
+                //    None => {
+                //        println!("storage files last index not initialized");
+
+                //    }, 
+                //}        
                 return Ok(());
             }
             Err(e)=> {
@@ -110,11 +112,18 @@ impl MaincoreInner{
         Ok(())
     }
     pub fn get_mainblocks_count(&self) -> usize {
-        let index_result=self.main_sd.get_storage_files_last_index();
-        match index_result {
-            Some(index) => return index+1,//println!("get_storage_files_last_index: {}", index),
-            None => return 0,//println!("storage files last index not initialized"), 
-        }
+        //let index_result=self.main_sd.get_storage_files_last_index();
+        //match index_result {
+        //    Some(index) => return index+1,//println!("get_storage_files_last_index: {}", index),
+        //    None => return 0,//println!("storage files last index not initialized"), 
+        //}
+        self.main_sd.get_storage_files_last_index()
+    }
+    pub fn add_genesis_mainblock(&mut self,mb: Mainblock)-> Result<(),MaincoreInnerError> {
+        let tmpheader=mb.get_mainheader();
+        self.header_vector.push(tmpheader);
+        self.genesis_mainblock=Some(mb);
+        Ok(())
     }
     pub async fn add_confirmed_mainblock(&mut self,mb: Mainblock)-> Result<(),MaincoreInnerError> {
         println!("************ add_confirmed_mainblock");
@@ -157,6 +166,12 @@ impl MaincoreInner{
         }
     }
     pub async fn get_mainblock(&mut self,block_height: usize)-> Result<Mainblock,MaincoreInnerError>{
+        if block_height==0 {
+            match self.genesis_mainblock.clone() {
+                Some(mb)=> return Ok(mb),
+                None => panic!("Fatal get_mainblock 0 failed no genesis_mainblock"),
+            }
+        }
         match self.main_sd.get_chunk(block_height).await {
             Ok(mb_rawbytes)=> {
                 println!("StorageDirectory get_chunk success");
@@ -204,6 +219,9 @@ impl MaincoreInner{
     }
     //
     pub async fn get_mainheader(&mut self,header_height: usize)-> Result<Mainheader, MaincoreInnerError> {
+        let mb=self.get_mainblock(header_height).await?;
+        Ok(mb.get_mainheader())
+        /*
         match self.main_sd.get_chunk(header_height).await {
             Ok(mb_rawbytes)=> {
                 //println!("ChunksStorage get_chunk success");
@@ -215,6 +233,7 @@ impl MaincoreInner{
                 Err(MaincoreInnerError::StorageDirectoryError(e))
             }
         }
+        */
     }
     pub fn get_last_inmem_mainheader(&self)-> Result<Mainheader, MaincoreInnerError> {
         let last_block_height=(self.header_vector.len())-1;
